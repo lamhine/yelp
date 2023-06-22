@@ -1,0 +1,3 @@
+cd /Users/lamhine/Downloads/archive/
+head yelp_academic_dataset_review.json
+head -n 1000000 yelp_academic_dataset_review.json > sample.json
