@@ -1,3 +1,7 @@
 cd /Users/lamhine/Downloads/archive/
 head yelp_academic_dataset_review.json
 head -n 1000000 yelp_academic_dataset_review.json > sample.json
+
+#Note: for windows user (randomly select sample):
+cd D:\Shiun\UCI\0Research Projects\Research Papers\SICSS\data\archive (1)
+Get-Content yelp_academic_dataset_review.json | Get-Random -Count 1000000 | Out-File -Encoding utf8 yelpdata2.json
