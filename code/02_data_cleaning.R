@@ -24,7 +24,7 @@ restaurants <- businesses %>%
   ))
 
 # inner_join with review data 
-rest_revs <- inner_join(restaurants, review_data, by = "business_id")
+rest_revs <- left_join(restaurants, review_data, by = "business_id")
 
 # keep only vars of interest
 rest_revs <- rest_revs %>% 
