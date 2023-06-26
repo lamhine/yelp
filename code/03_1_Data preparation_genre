@@ -1,0 +1,102 @@
+rm(list = ls())
+library(jsonlite)
+library(tidyverse)
+library(tidytext)
+library(stringr)
+library(dplyr)
+library(syuzhet)
+
+# stream in 1 million randomly sampled reviews and all business data
+review_data_1M <- stream_in(file("/Users/xiaoqianwan/Desktop/SICSS_UCLA/project/yelp_sample.json"))
+businesses <- stream_in(file("/Users/xiaoqianwan/Desktop/SICSS_UCLA/project/yelp_academic_dataset_business.json"))
+# convert into dataframe
+businesses <- data.frame(businesses)
+
+# get restuarants reviewed by the sample data
+resturants <- businesses %>%
+  filter(str_detect(categories, "Restaurants"))
+business_rev <- data.frame(unique(revs$business_id))
+colnames(business_rev)<- "business_id"
+restuarants_rev <- business_rev%>%
+  left_join(resturants,by="business_id")
+
+#filter for major restuarant genres and assign a new genre variable 
+restuarants_rev <-restuarants_rev %>%
+  filter(str_detect(categories,"Chinese")|str_detect(categories,"Mexican")|str_detect(categories,"American")|str_detect(categories,"Italian")
+         |str_detect(categories,"Japanese")|str_detect(categories,"Korean")|str_detect(categories,"Greek")|str_detect(categories,"Middle Eastern")
+         |str_detect(categories,"French"))
+restuarants_rev<- restuarants_rev %>%
+  select(business_id:review_count,categories)
+
+restuarants_rev <- restuarants_rev %>%
+  mutate(genre = if_else(str_detect(categories, "Chinese"), "Chinese",
+                         if_else(str_detect(categories, "Mexican"), "Mexican",
+                                 if_else(str_detect(categories, "American"), "American",
+                                         if_else(str_detect(categories, "Italian"), "Italian",
+                                                 if_else(str_detect(categories, "Japanese"), "Japanese",
+                                                         if_else(str_detect(categories, "Korean"), "Korean",
+                                                                 if_else(str_detect(categories, "Greek"), "Greek",
+                                                                         if_else(str_detect(categories, "Middle Eastern"), "Middle Eastern",
+                                                                                 if_else(str_detect(categories, "French"), "French",
+                                                                                         "Other"
+                                                                                 )
+                                                                         )
+                                                                 )
+                                                         )
+                                                 )
+                                         )
+                                 )
+                         )
+  ))
+
+
+#get the sample restuarants' basic information 
+restaurant_count <- restuarants_rev %>%
+  group_by(genre) %>%
+  summarize(count = n())
+
+#link restaurants reviewed to their review texts 
+restuarants_revtext <- restuarants_rev %>%
+  left_join(review_data_1M,by="business_id")
+restuarants_revtext <- restuarants_revtext %>%
+  rename(star_business=stars.x)%>%
+  rename(star_reviewer=stars.y)%>%
+  mutate(star_business=as.numeric(star_business))%>%
+  mutate(star_reviewer=as.numeric(star_reviewer))
+
+#check review star across different genre
+restuarants_revtext %>% group_by(genre)%>% summarize(mean_star=mean(star_business))
+
+
+# unnest tokens and remove stop words
+data("stop_words")
+
+tidy_words <- restuarants_revtext %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words)
+
+#put full text back to tidytext dataframe
+text <- restuarants_revtext %>% 
+  select(review_id,text)
+tidy_words <- tidy_words %>%
+  left_join(text, by= "review_id")
+
+
+### "dirty"
+#get reviews that mentioned dirty
+tidy_words_dirty <- tidy_words %>%
+  filter(grepl("(?)dirty",word))
+
+business_dirty <- data.frame(unique(tidy_words_dirty$business_id))
+colnames (business_dirty) <-"business_id"
+
+restuarants_genre <- restuarants_rev %>%
+  select(business_id,genre)
+
+business_dirty <- business_dirty %>%
+  left_join(restuarants_genre,by="business_id")
+
+business_dirty <- business_dirty %>% 
+  group_by(genre)%>%
+  summarise(count=n())
+
