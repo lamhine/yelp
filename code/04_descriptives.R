@@ -1,6 +1,7 @@
 # load packages
 library(tidyverse)
 library(data.table)
+library(gtsummary)
 
 # set working directory
 setwd("/Users/lamhine/Documents/GitHub/yelp/data")
@@ -14,6 +15,39 @@ freq_words <- rest_revs %>%
          gross = as.numeric(str_detect(text, "gross")),
          dirty = as.numeric(str_detect(text, "dirty")),
          auth = as.numeric(str_detect(text, "authentic")))
+
+# create table 1
+tbl1 <- freq_words %>% 
+  dplyr::rename(
+    `Star rating` = stars.y,
+    Price = attributes.RestaurantsPriceRange2,
+    Nasty = nasty,
+    Gross = gross,
+    Dirty = dirty,
+    Authentic = auth
+         ) %>% 
+  mutate(
+    `Star rating` = case_when(
+      `Star rating` == 1 ~ "*",
+      `Star rating` == 2 ~ "**",
+      `Star rating` == 3 ~ "***",
+      `Star rating` == 4 ~ "****",
+      `Star rating` == 5 ~ "*****"),
+    Price = case_when(
+      Price == 1 ~ "$",
+      Price == 2 ~ "$$",
+      Price == 3 ~ "$$$",
+      Price == 4 ~ "$$$$",
+      TRUE ~ "Missing")
+    ) %>% 
+  select(cuis_cat, `Star rating`, Price, 
+         Nasty, Gross, Dirty, Authentic) %>% 
+  tbl_summary(by = cuis_cat) %>% 
+  add_overall()
+
+tbl1
+
+tbl1 %>% as_gt() %>% gt::gtsave("/Users/lamhine/Documents/GitHub/yelp/plots/tbl1.png")
 
 # plot proportions of reviews by category that mention each word
 # first group by and summarize, then ggplot
