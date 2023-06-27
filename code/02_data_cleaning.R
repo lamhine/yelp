@@ -30,6 +30,7 @@ rest_revs <- left_join(restaurants, review_data, by = "business_id")
 rest_revs <- rest_revs %>% 
   select(business_id:review_count, 
          categories,
+         cuis_cat,
          review_id,
          stars.y,
          text,
