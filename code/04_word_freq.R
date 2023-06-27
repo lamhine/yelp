@@ -29,7 +29,6 @@ plot_freq <- freq_sum %>%
   facet_wrap(vars(word), scales="free")
 
 plot_freq
-
 ggsave("/Users/lamhine/Documents/GitHub/yelp/plots/plot_freq.png")
 
 # stratify plots by star rating
@@ -45,3 +44,12 @@ freq_stars <- freq_words %>%
     cols = c(3:ncol(.)), 
     names_to = "word"
   )
+
+plot_stars <- freq_stars %>% 
+  ggplot(aes(x = cuis_cat, y = value, fill = factor(stars.y))) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  facet_wrap(vars(word), scales="free")
+
+plot_stars
+ggsave("/Users/lamhine/Documents/GitHub/yelp/plots/plot_stars.png")
+

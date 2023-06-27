@@ -8,7 +8,8 @@ businesses <- stream_in(file("/Users/lamhine/Downloads/archive/yelp_academic_dat
 
 # filter for only restuarants containing American, Chinese, Mexican, or Italian
 # in the `categories` variable - note we need to overwrite "Latin American" 
-# and create a MECE cuisine category
+# create a MECE cuisine category and
+# remove all reviews that are blank (no text)
 
 restaurants <- businesses %>% 
   mutate(categories = str_remove(categories, "Latin American")) %>% 
@@ -23,18 +24,11 @@ restaurants <- businesses %>%
     str_detect(categories, "Italian") ~ "Italian"
   ))
 
-# inner_join with review data 
-rest_revs <- left_join(restaurants, review_data, by = "business_id")
-
-# keep only vars of interest
-rest_revs <- rest_revs %>% 
-  select(business_id:review_count, 
-         categories,
-         cuis_cat,
-         review_id,
-         stars.y,
-         text,
-         date)
+# inner_join with review data and flatten 
+rest_revs <- flatten(inner_join(restaurants, review_data, by = "business_id"))
 
 # write out .csv
-write_csv(rest_revs, "/Users/lamhine/Documents/GitHub/yelp/data/rest_revs.csv")
+write_csv(rest_revs, 
+          file.path(dir = "/Users/lamhine/Documents/GitHub/yelp/data/",
+          "rest_revs.csv.gz"))
+
