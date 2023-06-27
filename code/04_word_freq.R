@@ -22,6 +22,8 @@ freq_sum <- freq_words %>%
   )
     
 plot_freq <- freq_sum %>% 
-  ggplot(aes(x = cuis_cat)) + 
-  geom_bar() + 
-  facet_wrap(vars(word))
+  ggplot(aes(x = cuis_cat, y = value, fill = cuis_cat)) + 
+  geom_bar(stat = "identity") + 
+  facet_wrap(vars(word), scales="free")
+
+ggsave("/Users/lamhine/Documents/GitHub/yelp/plots/plot_freq.png")
