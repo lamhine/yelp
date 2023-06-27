@@ -31,3 +31,17 @@ plot_freq <- freq_sum %>%
 plot_freq
 
 ggsave("/Users/lamhine/Documents/GitHub/yelp/plots/plot_freq.png")
+
+# stratify plots by star rating
+freq_stars <- freq_words %>% 
+  group_by(cuis_cat, stars.y) %>% 
+  summarize(
+    nasty = sum(nasty)*100 / n(),
+    gross = sum(gross)*100 / n(),
+    dirty = sum(dirty)*100 / n(),
+    auth = sum(auth)*100 / n()
+  ) %>% 
+  pivot_longer(
+    cols = c(3:ncol(.)), 
+    names_to = "word"
+  )
