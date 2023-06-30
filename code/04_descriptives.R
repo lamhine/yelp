@@ -16,7 +16,9 @@ freq_words <- rest_revs %>%
   mutate(ngdd = as.numeric(str_detect(text, "nasty|gross|disgust|disgusting")),
          dirty = as.numeric(str_detect(text, "dirty")),
          badhor = as.numeric(str_detect(text, "bad|horrible")),
-         auth = as.numeric(str_detect(text, "authentic")))
+         auth = as.numeric(str_detect(text, "authentic")), 
+         sick = as.numeric(str_detect(text, "sick")),
+         rude = as.numeric(str_detect(text, "rude")))
 
 # collapse the $$$ and $$$$ categories because too few in the $$$$ group
 freq_words <- freq_words %>% 
@@ -34,7 +36,9 @@ tbl1 <- freq_words %>%
     `Nasty, gross, disgust*` = ngdd,
     `Bad, horrible` = badhor,
     Dirty = dirty,
-    Authentic = auth
+    Authentic = auth,
+    Sick = sick, 
+    Rude = rude,
          ) %>% 
   mutate(
     `Star rating` = case_when(
@@ -49,8 +53,8 @@ tbl1 <- freq_words %>%
       Price == 3 ~ "$$$ and $$$$",
       TRUE ~ "Missing")
     ) %>% 
-  select(cuis_cat, `Star rating`, Price, 
-         `Nasty, gross, disgust*`, `Bad, horrible`, Dirty, Authentic) %>% 
+  select(cuis_cat, n_rest, `Star rating`, Price, 
+         `Nasty, gross, disgust*`, `Bad, horrible`, Dirty, Authentic, Sick, Rude) %>% 
   tbl_summary(by = cuis_cat) %>% 
   add_overall()
 
@@ -66,7 +70,9 @@ freq_sum <- freq_words %>%
     `Nasty, gross, disgust*` = sum(ngdd)*100 / n(),
     `Bad, horrible` = sum(badhor)*100 / n(),
     Dirty = sum(dirty)*100 / n(),
-    Authentic = sum(auth)*100 / n()
+    Authentic = sum(auth)*100 / n(),
+    Sick = sum(sick)*100 / n(),
+    Rude = sum(rude)*100 / n()
   ) %>% 
   pivot_longer(
     cols = c(2:ncol(.)), 
@@ -76,7 +82,7 @@ freq_sum <- freq_words %>%
 plot_freq <- freq_sum %>% 
   ggplot(aes(x = cuis_cat, y = value, fill = cuis_cat)) + 
   geom_bar(stat = "identity") + 
-  facet_wrap(vars(word), scales="free") +
+  facet_wrap(vars(word), scales="free", ncol = 3) +
   theme(axis.title.x = element_blank()) + 
   labs(title = "Reviews mentioning keywords by cuisine",
        y = "Proportion",
